@@ -1,0 +1,17 @@
+[
+  {
+    "instruction": "Translate to French:",
+    "input": "I love programming.",
+    "output": "J'aime programmer."
+  },
+  {
+    "instruction": "Summarize this sentence:",
+    "input": "The quick brown fox jumps over the lazy dog.",
+    "output": "A fox jumps over a dog."
+  },
+  {
+    "instruction": "Translate to Spanish:",
+    "input": "Good morning, have a nice day!",
+    "output": "¡Buenos días, que tengas un buen día!"
+  }
+]
