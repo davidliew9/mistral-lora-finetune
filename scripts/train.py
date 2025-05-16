@@ -8,7 +8,7 @@ device = "mps" if torch.backends.mps.is_available() else "cpu"
 print("Using device:", device)
 
 # Load dataset
-dataset = load_dataset("json", data_files="data.json")["train"]
+dataset = load_dataset("json", data_files="data/custom_alpaca.json")["train"]
 
 # Format the input for T5
 def format(example):
@@ -35,35 +35,29 @@ model = get_peft_model(model, peft_config)
 
 # Tokenize
 def tokenize(example):
-    model_inputs = tokenizer(
-        example["input_text"],
-        max_length=256,
-        padding="max_length",
-        truncation=True,
-        return_tensors="pt"
-    )
-    labels = tokenizer(
-        example["target_text"],
-        max_length=128,
-        padding="max_length",
-        truncation=True,
-        return_tensors="pt"
-    )
-    model_inputs["labels"] = labels["input_ids"]
-    return model_inputs
+    prompt = f"{example['instruction']}\n{example['input']}"
+    tokenized = tokenizer(prompt, truncation=True,
+                        padding="max_length", max_length=512)
+    labels = tokenizer(example['output'], truncation=True,
+                    padding="max_length", max_length=512)
+    tokenized["labels"] = labels["input_ids"]
+    return tokenized
 
 
-tokenized_dataset = dataset.map(tokenize, remove_columns=dataset.column_names)
+tokenized_dataset = dataset.map(tokenize)
+print(tokenized_dataset[0])
 
 # Training arguments
 training_args = Seq2SeqTrainingArguments(
-    output_dir="./results",
+    output_dir="./models/lora_t5_finetuned",
     per_device_train_batch_size=1,
     learning_rate=2e-4,
     num_train_epochs=5,
     logging_dir="./logs",
     logging_steps=1,
-    save_strategy="no",
+    save_strategy="epoch",
+    save_total_limit=1,
+    logging_strategy="epoch",
     report_to="none",
 )
 
